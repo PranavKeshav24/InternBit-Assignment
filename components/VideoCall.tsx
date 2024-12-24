@@ -1,9 +1,13 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Mic, MicOff, Camera, CameraOff, Monitor, User } from "lucide-react";
 import { useAgoraClient } from "@/hooks/useAgoraClient";
 import { useAgoraMedia } from "@/hooks/useAgoraMedia";
@@ -45,6 +49,15 @@ export default function VideoCall() {
     }
   };
 
+  // Handle remote video track playback
+  useEffect(() => {
+    users.forEach((user) => {
+      if (user.videoTrack) {
+        user.videoTrack.play(`remote-video-${user.uid}`);
+      }
+    });
+  }, [users]);
+
   return (
     <div className="min-h-screen bg-background p-4">
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
@@ -80,9 +93,7 @@ export default function VideoCall() {
             <div
               id={`remote-video-${user.uid}`}
               className="w-full h-[400px] bg-muted rounded-lg overflow-hidden"
-            >
-              {user.videoTrack?.play(`remote-video-${user.uid}`)}
-            </div>
+            />
             <div className="absolute bottom-4 left-4 bg-black/50 px-2 py-1 rounded text-white flex items-center">
               <User className="w-4 h-4 mr-2" />
               {userNames[user.uid] || "User"}

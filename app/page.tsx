@@ -1,4 +1,10 @@
-import VideoCall from "@/components/VideoCall";
+"use client";
+import dynamic from "next/dynamic";
+
+// Dynamically import VideoCall with ssr: false
+const VideoCall = dynamic(() => import("@/components/VideoCall"), {
+  ssr: false,
+});
 
 export default function Home() {
   return (

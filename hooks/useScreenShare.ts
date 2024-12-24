@@ -1,26 +1,34 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import AgoraRTC, { IAgoraRTCClient, IScreenVideoTrack } from "agora-rtc-sdk-ng";
+import AgoraRTC, { IAgoraRTCClient, ILocalVideoTrack } from "agora-rtc-sdk-ng";
 
 export function useScreenShare(client: IAgoraRTCClient) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [screenTrack, setScreenTrack] = useState<IScreenVideoTrack | null>(null);
+  const [screenTrack, setScreenTrack] = useState<ILocalVideoTrack | null>(null);
 
   const startScreenShare = useCallback(async () => {
     try {
-      const track = await AgoraRTC.createScreenVideoTrack({
-        encoderConfig: "1080p_1",
-        optimizationMode: "detail",
-      }, "disable");
+      // Create a screen sharing track (local video track)
+      const track = await AgoraRTC.createScreenVideoTrack(
+        {
+          encoderConfig: "1080p_1",
+          optimizationMode: "detail",
+        },
+        "disable" // "disable" indicates we do not want audio for the screen share
+      );
 
+      // Publish the track to the Agora channel
       await client.publish(track);
+
+      // Play the local screen share track (display it on the client)
       track.play("local-video");
-      
+
+      // Update the state to store the screen sharing track and status
       setScreenTrack(track);
       setIsScreenSharing(true);
-      
-      // Handle when user ends sharing via browser UI
+
+      // Handle when the user stops screen sharing (via browser UI)
       track.on("track-ended", () => {
         stopScreenShare();
       });
@@ -40,8 +48,11 @@ export function useScreenShare(client: IAgoraRTCClient) {
     if (!screenTrack) return;
 
     try {
+      // Unpublish and stop the screen track
       await client.unpublish(screenTrack);
       screenTrack.close();
+
+      // Clear the state
       setScreenTrack(null);
       setIsScreenSharing(false);
     } catch (error) {
@@ -53,6 +64,6 @@ export function useScreenShare(client: IAgoraRTCClient) {
     isScreenSharing,
     screenTrack,
     startScreenShare,
-    stopScreenShare
+    stopScreenShare,
   };
 }
